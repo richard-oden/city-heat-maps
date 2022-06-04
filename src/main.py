@@ -1,3 +1,4 @@
+from math import floor
 from dotenv import load_dotenv
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
@@ -26,14 +27,37 @@ def get_comprehensive_zipcodes(city: str, state: str) -> list:
 
 def get_transit_mode_percentage(zipcode: ComprehensiveZipcode, desired_transit_mode: str) -> float | None:
     transit_mode_responses = zipcode.means_of_transportation_to_work_for_workers_16_and_over[0]['values']
-    total_responses = sum([tm['y'] for tm in transit_mode_responses])
-    responses_for_desired_transit_mode = next((tm['y'] for tm in transit_mode_responses if tm['x'] == desired_transit_mode), None)
-    if responses_for_desired_transit_mode is None:
+    desired_transit_mode_responses = next((tm['y'] for tm in transit_mode_responses if tm['x'] == desired_transit_mode), None)
+    if desired_transit_mode_responses is None:
         return
-    
-    return responses_for_desired_transit_mode / total_responses
 
-def try_polygon(coords: (list|tuple)) -> (Polygon|None):
+    total_responses = sum([tm['y'] for tm in transit_mode_responses])
+    return desired_transit_mode_responses / total_responses
+
+def get_age_bracket(age: int) -> int:
+    if age < 0:
+        return 0
+
+    bracket_index = floor(float(age)/5)
+    if bracket_index > 17:
+        return 17
+
+    return bracket_index
+
+def get_age_percentage(zipcode: ComprehensiveZipcode, desired_age: int) -> float | None:
+    age_responses = next((pba['values'] for pba in zipcode.population_by_age if pba['key'] == 'Total'), None)
+    if age_responses is None:
+        return
+
+    age_bracket = get_age_bracket(desired_age)
+    desired_age_responses = next((ar['y'] for ar in age_responses if ar['x'] == age_bracket), None)
+    if desired_age_responses is None:
+        return
+
+    total_responses = sum([ar['y'] for ar in age_responses])
+    return desired_age_responses / total_responses
+
+def try_polygon(coords: (list|tuple)) -> Polygon | None:
     try:
         if not coords:
             return
@@ -70,7 +94,7 @@ def get_walkscore(lat: float, lng: float) -> dict:
 
 
 zipcodes = get_comprehensive_zipcodes('Portland', 'Oregon')
-percentage = get_transit_mode_percentage(zipcodes[0], transit_modes[4])
+percentage = get_age_percentage(zipcodes[0], 29)
 
 # zipcode_samples = {zipcode:sample_coordinates_within_zipcode(zipcode, 0.01) for zipcode in zipcodes}
 
