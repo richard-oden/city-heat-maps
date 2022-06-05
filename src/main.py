@@ -93,8 +93,8 @@ def get_walkscore(lat: float, lng: float) -> dict:
     return
 
 
-zipcodes = get_comprehensive_zipcodes('Portland', 'Oregon')
-percentage = get_age_percentage(zipcodes[0], 29)
+zipcodes = get_comprehensive_zipcodes('Louisville', 'Kentucky')
+percentage = get_transit_mode_percentage(zipcodes[0], transit_modes[0])
 
 # zipcode_samples = {zipcode:sample_coordinates_within_zipcode(zipcode, 0.01) for zipcode in zipcodes}
 
@@ -105,3 +105,4 @@ percentage = get_age_percentage(zipcodes[0], 29)
 
 # plt.gca().axis("equal")
 # plt.show()
+# print('done')
