@@ -112,3 +112,14 @@ def get_commute_time_percentage(zipcode: ComprehensiveZipcode, desired_commute_t
     total_responses = sum([r['y'] for r in responses])
 
     return desired_responses / total_responses
+
+
+def get_available_housing_percentage(zipcode: ComprehensiveZipcode, desired_housing_availability: float) -> float | None:
+    '''
+    Returns a percentage representing how close the zipcode's housing availability is to desired_housing_availabilibility.
+    '''
+    if zipcode.housing_units is None or zipcode.occupied_housing_units is None:
+        return
+
+    housing_availability = 1 - (zipcode.occupied_housing_units / zipcode.housing_units)
+    return desired_housing_availability / housing_availability
