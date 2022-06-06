@@ -1,9 +1,9 @@
-from math import floor
+
 from dotenv import load_dotenv
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
-from uszipcode import SearchEngine
 from uszipcode import ComprehensiveZipcode
+import helpers.zipcode_helper as zipcode_helper
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -49,8 +49,8 @@ def get_walkscore(lat: float, lng: float) -> dict:
     return
 
 
-#zipcodes = get_comprehensive_zipcodes('Louisville', 'Kentucky')
-#percentage = get_transit_mode_percentage(zipcodes[0], transit_modes[0])
+zipcodes = zipcode_helper.get_comprehensive_zipcodes('San Francisco', 'California')
+percentage = zipcode_helper.get_transit_mode_percentage(zipcodes[0], zipcode_helper.transit_modes[0])
 
 # zipcode_samples = {zipcode:sample_coordinates_within_zipcode(zipcode, 0.01) for zipcode in zipcodes}
 
