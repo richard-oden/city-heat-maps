@@ -1,4 +1,5 @@
 from math import floor
+from statistics import mode
 from sqlalchemy import Column
 from uszipcode import SearchEngine
 from uszipcode import ComprehensiveZipcode
@@ -141,3 +142,17 @@ def get_sex_ratio_percentage(zipcode: ComprehensiveZipcode, desired_sex_ratio: f
     
     sex_ratio = male_responses / female_responses
     return desired_sex_ratio / sex_ratio
+
+
+def get_diversity_percentage(zipcode: ComprehensiveZipcode, desired_diversity: float) -> float | None:
+    '''
+    Returns a percentage representing how close the zipcode's diversity is to desired_diversity.
+    '''
+    responses = get_column_data_values(zipcode.population_by_race)
+    if responses is None:
+        return
+
+    total_responses = sum([r['y'] for r in responses])
+    percentage_responses_by_race = [r['y'] / total_responses for r in responses]
+    diversity = mode(percentage_responses_by_race)
+    return desired_diversity / diversity
