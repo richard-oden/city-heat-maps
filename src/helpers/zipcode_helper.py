@@ -123,3 +123,21 @@ def get_available_housing_percentage(zipcode: ComprehensiveZipcode, desired_hous
 
     housing_availability = 1 - (zipcode.occupied_housing_units / zipcode.housing_units)
     return desired_housing_availability / housing_availability
+
+
+def get_sex_ratio_percentage(zipcode: ComprehensiveZipcode, desired_sex_ratio: float) -> float | None:
+    '''
+    Returns a percentage representing how close the zipcode's ratio of males to females is to desired_sex_ratio.
+    '''
+    responses = get_column_data_values(zipcode.population_by_gender)
+    if responses is None:
+        return
+    
+    male_responses = next((r['y'] for r in responses if r['x'] == 'Male'), None)
+    female_responses = next((r['y'] for r in responses if r['x'] == 'Female'), None)
+
+    if male_responses is None or female_responses is None:
+        return
+    
+    sex_ratio = male_responses / female_responses
+    return desired_sex_ratio / sex_ratio
