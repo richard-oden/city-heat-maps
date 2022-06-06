@@ -18,6 +18,21 @@ def get_column_data_values(column: Column) -> list:
 
     return next((a['values'] for a in column if a['key'] == 'Data'), None)
 
+
+def get_bracket_index(value: int | float, interval: int, max_bracket: int) -> int:
+    '''
+    Returns bracket index of value based on interval and max_bracket.
+    '''
+    if value <= 0:
+        return 0
+
+    bracket_index = floor(float(value)/interval)
+    if bracket_index > max_bracket:
+        return max_bracket
+
+    return bracket_index
+
+
 def get_comprehensive_zipcodes(city: str, state: str) -> list:
     with SearchEngine(simple_or_comprehensive=SearchEngine.SimpleOrComprehensiveArgEnum.comprehensive) as search:
         return search.by_city_and_state(city=city, state=state, returns=None)
@@ -33,20 +48,6 @@ def get_transit_mode_percentage(zipcode: ComprehensiveZipcode, desired_transit_m
     return desired_transit_mode_responses / total_responses
 
 
-def get_age_bracket(age: int) -> int:
-    '''
-    Returns age bracket index based on the supplied age.
-    '''
-    if age < 0:
-        return 0
-
-    bracket_index = floor(float(age)/5)
-    if bracket_index > 17:
-        return 17
-
-    return bracket_index
-
-
 def get_age_percentage(zipcode: ComprehensiveZipcode, desired_age: int) -> float | None:
     '''
     Returns the percentage of inhabitants in the same bracket as desired_age.
@@ -55,7 +56,7 @@ def get_age_percentage(zipcode: ComprehensiveZipcode, desired_age: int) -> float
     if age_responses is None:
         return
 
-    age_bracket = get_age_bracket(desired_age)
+    age_bracket = get_bracket_index(desired_age, 5, 17)
     desired_age_responses = next((ar['y'] for ar in age_responses if ar['x'] == age_bracket), None)
     if desired_age_responses is None:
         return
@@ -68,20 +69,6 @@ def get_rent_per_bd_percentage(zipcode: ComprehensiveZipcode, desired_rent_per_b
     '''
     Returns the percentage of bedrooms that are in the same bracket or less than desired_rent_per_bd.
     '''
-
-    def get_rent_bracket(rent: int | float) -> int:
-        '''
-        Returns rent bracket index based on the supplied rent.
-        '''
-        if rent <= 0:
-            return 0
-
-        bracket_index = floor(float(rent)/200)
-        if bracket_index > 5:
-            return 5
-
-        return bracket_index
-
     def get_rent_responses(column: Column, multiplier: float | int) -> dict:
         '''
         Returns a dict containing desired and total rent responses given the column and multiplier (number of bedrooms).
@@ -90,7 +77,7 @@ def get_rent_per_bd_percentage(zipcode: ComprehensiveZipcode, desired_rent_per_b
         if responses is None:
             return { 'desired': 0, 'total': 0 }
         
-        bracket = get_rent_bracket(desired_rent_per_bd * multiplier)
+        bracket = get_bracket_index(desired_rent_per_bd * multiplier, 200, 5)
         desired_responses = sum([r['y'] for r in responses if responses.index(r) <= bracket]) * desired_rent_per_bd
         total_responses = sum([r['y'] for r in responses]) * desired_rent_per_bd
 
@@ -110,3 +97,18 @@ def get_rent_per_bd_percentage(zipcode: ComprehensiveZipcode, desired_rent_per_b
     desired_responses = sum([r['desired'] for r in rent_responses])
 
     return  desired_responses / total_responses 
+
+
+def get_commute_time_percentage(zipcode: ComprehensiveZipcode, desired_commute_time_minutes: int) -> float | None:
+    '''
+    Returns percentage of commute times that are less than or in the same bracket as desired_commute_time_minutes.
+    '''
+    responses = get_column_data_values(zipcode.travel_time_to_work_in_minutes)
+    if responses is None:
+        return
+    
+    bracket = get_bracket_index(desired_commute_time_minutes, 10, 7)
+    desired_responses = sum([r['y'] for r in responses if responses.index(r) <= bracket])
+    total_responses = sum([r['y'] for r in responses])
+
+    return desired_responses / total_responses
