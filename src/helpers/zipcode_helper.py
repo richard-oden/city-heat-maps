@@ -1,18 +1,30 @@
 from math import floor
 from statistics import mode
-from tokenize import single_quoted
 from sqlalchemy import Column
 from uszipcode import SearchEngine
 from uszipcode import ComprehensiveZipcode
 
-
-transit_modes = [
+TRANSPORT_MODE_KEYWORDS = [
     'Car, Truck, Or Van',
     'Public Transportation',
     'Taxicab',
     'Motorcycle',
     'Bicycle, Walked, Or Other Means'
 ]
+MALE_KEYWORD = 'Male'
+FEMALE_KEYWORD = 'Female'
+EDUCATION_KEYWORDS = [
+    'Less Than High School Diploma',
+    'High School Graduate',
+    'Associate\'s Degree',
+    'Bachelor\'s Degree',
+    'Master\'s Degree',
+    'Professional School Degree',
+    'Doctorate Degree'
+]
+UNEMPLOYED_KEYWORD = 'No Earnings'
+FAMILY_KEYWORDS = ['Husband Wife Family Households', 'Single Guardian']
+SINGLE_KEYWORDS = ['Singles', 'Singles With Roommate']
 
 def get_column_data_values(column: Column) -> list:
     if column is None:
@@ -36,13 +48,23 @@ def get_bracket_index(value: int | float, interval: int, max_bracket: int) -> in
 
 
 def get_comprehensive_zipcodes(city: str, state: str) -> list:
+    '''
+    Returns a list of uszipcode.ComprehensiveZipCode representing every zipcode in the given city.
+    '''
     with SearchEngine(simple_or_comprehensive=SearchEngine.SimpleOrComprehensiveArgEnum.comprehensive) as search:
         return search.by_city_and_state(city=city, state=state, returns=None)
         
 
-def get_transit_mode_percentage(zipcode: ComprehensiveZipcode, desired_transit_mode: str) -> float | None:
+def get_transport_mode_percentage(zipcode: ComprehensiveZipcode, desired_transport_mode: str) -> float | None:
+    '''
+    Returns the percentage of the zipcode's inhabitants aged 16 and over who use the same mode of 
+    transport to get to work as desired_transport_mode.
+    '''
+    if desired_transport_mode not in TRANSPORT_MODE_KEYWORDS:
+        return None
+
     transit_mode_responses = zipcode.means_of_transportation_to_work_for_workers_16_and_over[0]['values']
-    desired_transit_mode_responses = next((tm['y'] for tm in transit_mode_responses if tm['x'] == desired_transit_mode), None)
+    desired_transit_mode_responses = next((tm['y'] for tm in transit_mode_responses if tm['x'] == desired_transport_mode), None)
     if desired_transit_mode_responses is None:
         return
 
@@ -120,7 +142,7 @@ def get_commute_time_percentage(zipcode: ComprehensiveZipcode, desired_commute_t
 def get_available_housing_percentage(zipcode: ComprehensiveZipcode, desired_housing_availability: float) -> float | None:
     '''
     Returns a percentage representing how close the zipcode's housing availability is to 
-    desired_housing_availabilibility.
+    desired_housing_availability.
     '''
     if zipcode.housing_units is None or zipcode.occupied_housing_units is None:
         return
@@ -137,8 +159,8 @@ def get_sex_ratio_percentage(zipcode: ComprehensiveZipcode, desired_sex_ratio: f
     if responses is None:
         return
     
-    male_responses = next((r['y'] for r in responses if r['x'] == 'Male'), None)
-    female_responses = next((r['y'] for r in responses if r['x'] == 'Female'), None)
+    male_responses = next((r['y'] for r in responses if r['x'] == MALE_KEYWORD), None)
+    female_responses = next((r['y'] for r in responses if r['x'] == FEMALE_KEYWORD), None)
 
     if male_responses is None or female_responses is None:
         return
@@ -166,6 +188,9 @@ def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: s
     Returns a percentage representing the zipcode's number of inhabitants aged 25 or over who have the 
     desired level of education.
     '''
+    if desired_education not in EDUCATION_KEYWORDS:
+        return
+
     responses = get_column_data_values(zipcode.educational_attainment_for_population_25_and_over)
     if responses is None:
         return
@@ -175,8 +200,8 @@ def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: s
         return
     
     total_responses = sum([r['y'] for r in responses])
-
     return desired_responses / total_responses
+
 
 def get_unemployment_percentage(zipcode: ComprehensiveZipcode, desired_unemployment: float) -> float | None:
     '''
@@ -186,13 +211,14 @@ def get_unemployment_percentage(zipcode: ComprehensiveZipcode, desired_unemploym
     if responses is None:
         return
 
-    unemployed_responses = next((r['y'] for r in responses if r['x'] == 'No Earnings'), None)
+    unemployed_responses = next((r['y'] for r in responses if r['x'] == UNEMPLOYED_KEYWORD), None)
     if unemployed_responses is None:
         return
 
     total_responses = sum([r['y'] for r in responses])
     unemployment = unemployed_responses / total_responses
     return desired_unemployment / unemployment
+
 
 def get_family_ratio_percentage(zipcode: ComprehensiveZipcode, desired_family_ratio: float) -> float | None:
     '''
@@ -203,11 +229,13 @@ def get_family_ratio_percentage(zipcode: ComprehensiveZipcode, desired_family_ra
     if responses is None:
         return
 
-    family_responses = sum([r['y'] for r in responses if r['x'] == 'Husband Wife Family Households' or r['x'] == 'Single Guardian'], start=None)
-    single_responses = sum([r['y'] for r in responses if r['x'] == 'Singles' or r['x'] == 'Single With Roommate'], start=None)
-    if family_responses is None or single_responses is None:
+    family_responses = [r['y'] for r in responses if r['x'] in FAMILY_KEYWORDS]
+    single_responses = [r['y'] for r in responses if r['x'] in SINGLE_KEYWORDS]
+    if len(family_responses) == 0 or len(single_responses) == 0:
         return
 
-    family_ratio = family_responses / single_responses
+    family_responses_sum = sum(family_responses)
+    single_responses_sum = sum(single_responses)
+    family_ratio = family_responses_sum / single_responses_sum
     return desired_family_ratio / family_ratio
     

@@ -50,7 +50,7 @@ def get_walkscore(lat: float, lng: float) -> dict:
 
 
 zipcodes = zipcode_helper.get_comprehensive_zipcodes('San Francisco', 'California')
-percentage = zipcode_helper.get_transit_mode_percentage(zipcodes[0], zipcode_helper.transit_modes[0])
+percentage = zipcode_helper.get_transport_mode_percentage(zipcodes[0], zipcode_helper.TRANSPORT_MODE_KEYWORDS[0])
 
 # zipcode_samples = {zipcode:sample_coordinates_within_zipcode(zipcode, 0.01) for zipcode in zipcodes}
 
