@@ -156,3 +156,19 @@ def get_diversity_percentage(zipcode: ComprehensiveZipcode, desired_diversity: f
     percentage_responses_by_race = [r['y'] / total_responses for r in responses]
     diversity = mode(percentage_responses_by_race)
     return desired_diversity / diversity
+
+def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: str) -> float | None:
+    '''
+    Returns a percentage representing the number of inhabitants aged 25 or over who have the desired level of education.
+    '''
+    responses = get_column_data_values(zipcode.educational_attainment_for_population_25_and_over)
+    if responses is None:
+        return
+
+    desired_responses = next((r['y'] for r in responses if r['x'] == desired_education), None)
+    if desired_responses is None:
+        return
+    
+    total_responses = sum([r['y'] for r in responses])
+
+    return desired_responses / total_responses

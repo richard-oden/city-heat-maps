@@ -15,7 +15,6 @@ class DesirabilityProfile():
         age: DesirabilityFactor | None,
         sex_ratio: DesirabilityFactor | None, 
         racial_diversity: DesirabilityFactor | None,
-        predominant_race: DesirabilityFactor | None,
         education_level: DesirabilityFactor | None,
         unemployment_rate: DesirabilityFactor | None,
         family_ratio: DesirabilityFactor | None):
@@ -32,7 +31,6 @@ class DesirabilityProfile():
         self.age = age
         self.sex_ratio = sex_ratio 
         self.racial_diversity = racial_diversity
-        self.predominant_race = predominant_race
         self.education_level = education_level
         self.unemployment_rate = unemployment_rate
         self.family_ratio =  family_ratio
