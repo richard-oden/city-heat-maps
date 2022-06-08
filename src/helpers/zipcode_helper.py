@@ -1,5 +1,6 @@
 from math import floor
 from statistics import mode
+from tokenize import single_quoted
 from sqlalchemy import Column
 from uszipcode import SearchEngine
 from uszipcode import ComprehensiveZipcode
@@ -162,7 +163,7 @@ def get_diversity_percentage(zipcode: ComprehensiveZipcode, desired_diversity: f
 
 def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: str) -> float | None:
     '''
-    Returns a percentage representing the number of inhabitants aged 25 or over who have the 
+    Returns a percentage representing the zipcode's number of inhabitants aged 25 or over who have the 
     desired level of education.
     '''
     responses = get_column_data_values(zipcode.educational_attainment_for_population_25_and_over)
@@ -179,7 +180,7 @@ def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: s
 
 def get_unemployment_percentage(zipcode: ComprehensiveZipcode, desired_unemployment: float) -> float | None:
     '''
-    Returns a percentage representing how similar the unemployment rate is to desired_unemployment.
+    Returns a percentage representing how similar the zipcode's unemployment rate is to desired_unemployment.
     '''
     responses = get_column_data_values(zipcode.employment_status)
     if responses is None:
@@ -191,6 +192,22 @@ def get_unemployment_percentage(zipcode: ComprehensiveZipcode, desired_unemploym
 
     total_responses = sum([r['y'] for r in responses])
     unemployment = unemployed_responses / total_responses
-
     return desired_unemployment / unemployment
+
+def get_family_ratio_percentage(zipcode: ComprehensiveZipcode, desired_family_ratio: float) -> float | None:
+    '''
+    Returns a percentage representing how similar the zipcode's ratio of families to singles is 
+    to desired_family_ratio.
+    '''
+    responses = get_column_data_values(zipcode.families_vs_singles)
+    if responses is None:
+        return
+
+    family_responses = sum([r['y'] for r in responses if r['x'] == 'Husband Wife Family Households' or r['x'] == 'Single Guardian'], start=None)
+    single_responses = sum([r['y'] for r in responses if r['x'] == 'Singles' or r['x'] == 'Single With Roommate'], start=None)
+    if family_responses is None or single_responses is None:
+        return
+
+    family_ratio = family_responses / single_responses
+    return desired_family_ratio / family_ratio
     
