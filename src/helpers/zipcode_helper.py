@@ -102,7 +102,8 @@ def get_rent_per_bd_percentage(zipcode: ComprehensiveZipcode, desired_rent_per_b
 
 def get_commute_time_percentage(zipcode: ComprehensiveZipcode, desired_commute_time_minutes: int) -> float | None:
     '''
-    Returns percentage of commute times that are less than or in the same bracket as desired_commute_time_minutes.
+    Returns percentage of commute times that are less than or in the same bracket as 
+    desired_commute_time_minutes.
     '''
     responses = get_column_data_values(zipcode.travel_time_to_work_in_minutes)
     if responses is None:
@@ -117,7 +118,8 @@ def get_commute_time_percentage(zipcode: ComprehensiveZipcode, desired_commute_t
 
 def get_available_housing_percentage(zipcode: ComprehensiveZipcode, desired_housing_availability: float) -> float | None:
     '''
-    Returns a percentage representing how close the zipcode's housing availability is to desired_housing_availabilibility.
+    Returns a percentage representing how close the zipcode's housing availability is to 
+    desired_housing_availabilibility.
     '''
     if zipcode.housing_units is None or zipcode.occupied_housing_units is None:
         return
@@ -157,9 +159,11 @@ def get_diversity_percentage(zipcode: ComprehensiveZipcode, desired_diversity: f
     diversity = mode(percentage_responses_by_race)
     return desired_diversity / diversity
 
+
 def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: str) -> float | None:
     '''
-    Returns a percentage representing the number of inhabitants aged 25 or over who have the desired level of education.
+    Returns a percentage representing the number of inhabitants aged 25 or over who have the 
+    desired level of education.
     '''
     responses = get_column_data_values(zipcode.educational_attainment_for_population_25_and_over)
     if responses is None:
@@ -172,3 +176,21 @@ def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: s
     total_responses = sum([r['y'] for r in responses])
 
     return desired_responses / total_responses
+
+def get_unemployment_percentage(zipcode: ComprehensiveZipcode, desired_unemployment: float) -> float | None:
+    '''
+    Returns a percentage representing how similar the unemployment rate is to desired_unemployment.
+    '''
+    responses = get_column_data_values(zipcode.employment_status)
+    if responses is None:
+        return
+
+    unemployed_responses = next((r['y'] for r in responses if r['x'] == 'No Earnings'), None)
+    if unemployed_responses is None:
+        return
+
+    total_responses = sum([r['y'] for r in responses])
+    unemployment = unemployed_responses / total_responses
+
+    return desired_unemployment / unemployment
+    
