@@ -47,6 +47,19 @@ def get_bracket_index(value: int | float, interval: int, max_bracket: int) -> in
     return bracket_index
 
 
+def get_percentage_comparison(actual_value: int | float, desired_value: int | float) -> float:
+    '''
+    Returns a percentage representing how similar actual_value and desired_value are, represented as a float between 0 and 1.
+    '''
+    if actual_value == 0 or desired_value == 0:
+        return 0
+
+    if actual_value < desired_value:
+        return actual_value / desired_value
+
+    return desired_value / actual_value
+
+
 def get_comprehensive_zipcodes(city: str, state: str) -> list:
     '''
     Returns a list of uszipcode.ComprehensiveZipCode representing every zipcode in the given city.
