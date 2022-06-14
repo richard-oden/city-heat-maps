@@ -161,7 +161,7 @@ def get_available_housing_percentage(zipcode: ComprehensiveZipcode, desired_hous
         return
 
     housing_availability = 1 - (zipcode.occupied_housing_units / zipcode.housing_units)
-    return desired_housing_availability / housing_availability
+    return get_percentage_comparison(housing_availability, desired_housing_availability)
 
 
 def get_sex_ratio_percentage(zipcode: ComprehensiveZipcode, desired_sex_ratio: float) -> float | None:
@@ -179,7 +179,7 @@ def get_sex_ratio_percentage(zipcode: ComprehensiveZipcode, desired_sex_ratio: f
         return
     
     sex_ratio = male_responses / female_responses
-    return desired_sex_ratio / sex_ratio
+    return get_percentage_comparison(sex_ratio, desired_sex_ratio)
 
 
 def get_diversity_percentage(zipcode: ComprehensiveZipcode, desired_diversity: float) -> float | None:
@@ -193,7 +193,7 @@ def get_diversity_percentage(zipcode: ComprehensiveZipcode, desired_diversity: f
     total_responses = sum([r['y'] for r in responses])
     percentage_responses_by_race = [r['y'] / total_responses for r in responses]
     diversity = mode(percentage_responses_by_race)
-    return desired_diversity / diversity
+    return get_percentage_comparison(diversity, desired_diversity)
 
 
 def get_education_percentage(zipcode: ComprehensiveZipcode, desired_education: str) -> float | None:
@@ -230,7 +230,7 @@ def get_unemployment_percentage(zipcode: ComprehensiveZipcode, desired_unemploym
 
     total_responses = sum([r['y'] for r in responses])
     unemployment = unemployed_responses / total_responses
-    return desired_unemployment / unemployment
+    return get_percentage_comparison(unemployment, desired_unemployment)
 
 
 def get_family_ratio_percentage(zipcode: ComprehensiveZipcode, desired_family_ratio: float) -> float | None:
@@ -250,5 +250,5 @@ def get_family_ratio_percentage(zipcode: ComprehensiveZipcode, desired_family_ra
     family_responses_sum = sum(family_responses)
     single_responses_sum = sum(single_responses)
     family_ratio = family_responses_sum / single_responses_sum
-    return desired_family_ratio / family_ratio
+    return get_percentage_comparison(family_ratio, desired_family_ratio)
     
